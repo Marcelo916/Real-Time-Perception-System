@@ -7,6 +7,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(OpenCV REQUIRED)
 
-add_executable(perception src/main.cpp)
+add_executable(perception 
+    src/main.cpp
+    src/video_reader.cpp
+)
+
+target_include_directories(perception PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${OpenCV_INCLUDE_DIRS}
+)
 
 target_link_libraries(perception PRIVATE ${OpenCV_LIBS})
