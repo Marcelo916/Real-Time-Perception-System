@@ -1,5 +1,8 @@
 #include <iostream>
+#include <opencv2/opencv.hpp>
+
 #include "video_reader.hpp"
+#include "video_writer.hpp"
 
 int main() {
     std::cout << "Real-Time Perception System\n";
@@ -15,24 +18,54 @@ int main() {
 
     std::cout << "Video opened succesffully!\n";
 
-    // Retrieve video information
-    std::cout << "FPS: " << video.getFPS() << "\n";
-    std::cout << "Resolution: "
-                << video.getWidth() << " x "
-                << video.getHeight() << "\n";
+    VideoWriter writer(
+        "data/processed.avi",
+        video.getFPS(),
+        video.getWidth(),
+        video.getHeight()
+    );
 
-    std::cout << "Total frames: " << video.getFrameCount() << "\n";
+    if (!writer.isOpened()) {
+        std::cerr << "Error: Could not create output video.\n";
+        return 1;
+    }
 
-    // Read the video frame by frame
     cv::Mat frame;
     int frameCount = 0;
 
     while (video.readFrame(frame)) {
         frameCount++;
 
-        if (frameCount % 100 == 0) {
+        // Add frame number to the image
+        cv::putText(
+            frame,
+            "Frame: " + std::to_string(frameCount),
+            cv::Point(20, 40),
+            cv::FONT_HERSHEY_SIMPLEX,
+            1.0,
+            cv::Scalar(0, 255, 0),
+            2
+        );
+
+        // Add video timestamp
+        double timestamp = frameCount / video.getFPS();
+
+        cv::putText(
+            frame,
+            "Time: " + std::to_string(timestamp) + " s",
+            cv::Point(20, 80),
+            cv::FONT_HERSHEY_SIMPLEX,
+            0.8,
+            cv::Scalar(0, 255, 0),
+            2
+        );
+
+        writer.writeFrame(frame);
+
+        if(frameCount % 100 == 0) {
             std::cout << "Processed " << frameCount << " frames\n";
         }
+        
     }
 
     std::cout << "Finished processing " << frameCount << " frames.\n";

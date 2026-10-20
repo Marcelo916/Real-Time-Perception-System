@@ -10,6 +10,7 @@ find_package(OpenCV REQUIRED)
 add_executable(perception 
     src/main.cpp
     src/video_reader.cpp
+    src/video_writer.cpp
 )
 
 target_include_directories(perception PRIVATE
