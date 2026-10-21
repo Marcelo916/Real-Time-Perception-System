@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include <opencv2/opencv.hpp>
 
 #include "video_reader.hpp"
@@ -32,6 +33,9 @@ int main() {
 
     cv::Mat frame;
     int frameCount = 0;
+
+    // Start performance timer
+    auto start = std::chrono::steady_clock::now();
 
     while (video.readFrame(frame)) {
         frameCount++;
@@ -67,6 +71,24 @@ int main() {
         }
         
     }
+
+    // Stop performance timer
+    auto end = std::chrono::steady_clock::now();
+
+    // Calculate elapsed time in seconds
+    std::chrono::duration<double> elapsed = end - start;
+
+    double totalSeconds = elapsed.count();
+
+    // Calculate processing FPS
+    double processingFPS = frameCount / totalSeconds;
+
+    // Print performace results
+    std::cout << "\n--- Performace Results ---\n";
+
+    std::cout << "Total time: " << totalSeconds << " seconds\n";
+
+    std::cout << "Processing FPS: " << processingFPS << "\n";
 
     std::cout << "Finished processing " << frameCount << " frames.\n";
 
