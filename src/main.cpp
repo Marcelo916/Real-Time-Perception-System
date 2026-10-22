@@ -1,5 +1,7 @@
 #include <iostream>
 #include <chrono>
+#include <limits>
+#include <algorithm>
 #include <opencv2/opencv.hpp>
 
 #include "video_reader.hpp"
@@ -34,11 +36,18 @@ int main() {
     cv::Mat frame;
     int frameCount = 0;
 
+    // Frame latency statistics (milliseconds)
+    double totalLatency = 0.0;
+    double minLatency = std::numeric_limits<double>::max();
+    double maxLantency = 0.0;
+
     // Start performance timer
     auto start = std::chrono::steady_clock::now();
 
     while (video.readFrame(frame)) {
         frameCount++;
+
+        auto frameStart = std::chrono::steady_clock::now();
 
         // Add frame number to the image
         cv::putText(
@@ -66,6 +75,19 @@ int main() {
 
         writer.writeFrame(frame);
 
+        auto frameEnd = std::chrono::steady_clock::now();
+
+        // Calculate frame latency in milliseconds
+        double latency = std::chrono::duration<double, std::milli>(
+            frameEnd - frameStart
+        ).count();
+
+        // Update statistics
+        totalLatency += latency;
+
+        minLatency = std::min(minLatency, latency);
+        maxLantency = std::max(maxLantency, latency);
+
         if(frameCount % 100 == 0) {
             std::cout << "Processed " << frameCount << " frames\n";
         }
@@ -83,6 +105,8 @@ int main() {
     // Calculate processing FPS
     double processingFPS = frameCount / totalSeconds;
 
+    double averageLatency = frameCount > 0 ? totalLatency / frameCount : 0.0;
+
     // Print performace results
     std::cout << "\n--- Performace Results ---\n";
 
@@ -90,7 +114,13 @@ int main() {
 
     std::cout << "Processing FPS: " << processingFPS << "\n";
 
-    std::cout << "Finished processing " << frameCount << " frames.\n";
+    std::cout << "Average frame latency: " << averageLatency << " ms\n";
 
+    std::cout << "Minimum frame latency: " << (frameCount > 0 ? minLatency : 0.0) << " ms\n";
+
+    std::cout << "Maximum frame latency: " << maxLantency << " ms\n";
+
+    std::cout << "Finished processing " << frameCount << " frames.\n";
+    
     return 0;
 }
